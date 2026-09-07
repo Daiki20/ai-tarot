@@ -16,3 +16,13 @@ export function mskDayStart(now: Date = new Date()): Date {
 export function nextMskDayStart(now: Date = new Date()): Date {
   return new Date(mskDayStart(now).getTime() + 24 * 60 * 60 * 1000);
 }
+
+/** Дата в московском календаре как "YYYY-MM-DD". */
+export function mskDateStr(now: Date = new Date()): string {
+  return new Date(now.getTime() + MSK_OFFSET_MS).toISOString().slice(0, 10);
+}
+
+/** UTC-момент 00:00 МСК указанной московской даты ("YYYY-MM-DD"). */
+export function mskDayStartOf(mskDate: string): Date {
+  return mskDayStart(new Date(mskDate + "T12:00:00Z"));
+}

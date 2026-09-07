@@ -1,7 +1,7 @@
 import { sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { dailyVisits } from "@/lib/db/schema";
-import { mskDayStart } from "@/lib/time";
+import { mskDateStr } from "@/lib/time";
 
 export const runtime = "nodejs";
 
@@ -9,7 +9,7 @@ export const runtime = "nodejs";
 // Считаем визиты по московским суткам.
 export async function POST() {
   try {
-    const day = mskDayStart().toISOString().slice(0, 10);
+    const day = mskDateStr();
     await db
       .insert(dailyVisits)
       .values({ day, count: 1 })
