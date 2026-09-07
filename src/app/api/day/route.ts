@@ -1,4 +1,4 @@
-import { openai, OPENAI_READING_MODEL } from "@/lib/openai";
+import { getOpenAI, OPENAI_READING_MODEL } from "@/lib/openai";
 import { getCardById } from "@/data/cards";
 import { buildDayMessages, parseDayLine } from "@/lib/day-reading";
 import { getNatalContext } from "@/lib/natal/context";
@@ -34,7 +34,7 @@ export async function POST(req: Request) {
         controller.enqueue(encoder.encode(JSON.stringify(obj) + "\n"));
 
       try {
-        const completion = await openai.chat.completions.create({
+        const completion = await getOpenAI().chat.completions.create({
           model: OPENAI_READING_MODEL,
           messages: buildDayMessages({ card, reversed, natal: natalCtx?.summary }),
           temperature: 0.85,

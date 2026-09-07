@@ -1,4 +1,4 @@
-import { openai, OPENAI_READING_MODEL } from "@/lib/openai";
+import { getOpenAI, OPENAI_READING_MODEL } from "@/lib/openai";
 import { computeFullMatrix } from "@/lib/matrix";
 import { buildMatrixMessages, parseMatrixLine } from "@/lib/matrix-reading";
 import { getNatalContext } from "@/lib/natal/context";
@@ -33,7 +33,7 @@ export async function POST(req: Request) {
         controller.enqueue(encoder.encode(JSON.stringify(obj) + "\n"));
 
       try {
-        const completion = await openai.chat.completions.create({
+        const completion = await getOpenAI().chat.completions.create({
           model: OPENAI_READING_MODEL,
           messages: buildMatrixMessages({ birthDate, points, natal: natalCtx?.summary }),
           temperature: 0.8,

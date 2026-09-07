@@ -1,4 +1,4 @@
-import { openai, OPENAI_READING_MODEL } from "@/lib/openai";
+import { getOpenAI, OPENAI_READING_MODEL } from "@/lib/openai";
 import { getSpreadById } from "@/data/spreads";
 import { getCardById } from "@/data/cards";
 import { buildReadingMessages, parseReadingLine } from "@/lib/reading";
@@ -64,7 +64,7 @@ export async function POST(req: Request) {
       let advice = "";
 
       try {
-        const completion = await openai.chat.completions.create({
+        const completion = await getOpenAI().chat.completions.create({
           model: OPENAI_READING_MODEL,
           messages: buildReadingMessages({
             spread,

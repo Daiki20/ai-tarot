@@ -1,4 +1,4 @@
-import { openai, OPENAI_CHAT_MODEL } from "@/lib/openai";
+import { getOpenAI, OPENAI_CHAT_MODEL } from "@/lib/openai";
 import { buildChatMessages, type ChatMessage } from "@/lib/chat";
 import type { ReadingResult } from "@/lib/reading";
 import { getNatalContext } from "@/lib/natal/context";
@@ -52,7 +52,7 @@ export async function POST(req: Request) {
   const natalCtx = await getNatalContext();
 
   try {
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: OPENAI_CHAT_MODEL,
       messages: buildChatMessages({
         spreadName:
