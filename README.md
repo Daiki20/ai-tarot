@@ -1,36 +1,42 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AI Tarot
 
-## Getting Started
+Премиальный сервис таро с AI-тарологом. Next.js 16 (App Router, Turbopack),
+React 19, Tailwind v4, PostgreSQL (Neon) + Drizzle, OpenAI.
 
-First, run the development server:
+## Запуск
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env.local     # вписать OPENAI_API_KEY и DATABASE_URL
+npm install
+npm run db:migrate             # создать таблицы
+npm run dev                    # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Локальная база вместо облачной: `docker compose up -d` и
+`DATABASE_URL=postgres://taro:taro@localhost:5432/taro`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Документация
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Полное описание проекта — в **[`docs/`](./docs/README.md)**:
 
-## Learn More
+| | |
+| --- | --- |
+| [docs/README.md](./docs/README.md) | карта проекта — начинать отсюда |
+| [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) | стек, структура, рендеринг, жизненный цикл запроса |
+| [docs/SETUP.md](./docs/SETUP.md) | переменные окружения, запуск, деплой |
+| [docs/EXTERNAL-SERVICES.md](./docs/EXTERNAL-SERVICES.md) | внешние API: OpenAI, Neon, OpenStreetMap |
+| [docs/API.md](./docs/API.md) | справочник по всем роутам |
+| [docs/DATABASE.md](./docs/DATABASE.md) | где база, схема, миграции |
+| [docs/AUTH.md](./docs/AUTH.md) | регистрация / вход / сессии |
+| [docs/TAROT.md](./docs/TAROT.md) | карты, расклады, случайность, продукты и цены |
+| [docs/AI-READINGS.md](./docs/AI-READINGS.md) | как ИИ делает разборы, промпты, стрим |
+| [docs/NATAL-CHART.md](./docs/NATAL-CHART.md) | натальная карта: расчёт, колесо, влияние на расклады |
+| [docs/DATA-SOURCES.md](./docs/DATA-SOURCES.md) | происхождение данных (колода, тексты, метод матрицы) |
+| [docs/DESIGN-SYSTEM.md](./docs/DESIGN-SYSTEM.md) | палитра, токены, компоненты, валюта aura |
+| [docs/STUBS.md](./docs/STUBS.md) | что заглушка / не реализовано (оплата, баланс, авторизация) |
 
-To learn more about Next.js, take a look at the following resources:
+## Важно
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+`AGENTS.md` — этот форк Next.js с ломающими изменениями; перед правкой кода читать
+`node_modules/next/dist/docs/`. Авторизация и оплата сейчас **временные заглушки**
+(см. `docs/STUBS.md`); БД, ИИ, натальная карта — рабочие.

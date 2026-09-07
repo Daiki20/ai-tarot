@@ -1,0 +1,25 @@
+# Локальная БД для разработки. Прод-инстанс подключается через DATABASE_URL.
+#   docker compose up -d      — поднять Postgres
+#   docker compose down       — остановить (данные сохраняются в томе pgdata)
+#   docker compose down -v    — снести вместе с данными
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: taro_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: taro
+      POSTGRES_PASSWORD: taro
+      POSTGRES_DB: taro
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U taro -d taro"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata:

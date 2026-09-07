@@ -1,26 +1,372 @@
 @import "tailwindcss";
 
+/*
+  Дизайн-система «ночной editorial».
+  Тёплый near-black, одно антично-золотое пятно акцента, слоновая кость в тексте.
+  Никакого неонового свечения — иерархию держит типографика и воздух.
+*/
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --ink-900: #0b0a09; /* фон страницы, тёплый near-black */
+  --ink-800: #110f0d; /* приподнятые поверхности */
+  --ink-700: #191613; /* карточки, панели */
+  --ink-600: #241f1a; /* бордюры-хайрлайны */
+
+  --bone: #f3ede1; /* основной текст */
+  --bone-dim: #cfc7b6; /* вторичный текст */
+  --muted: #8a8073; /* подписи, метки */
+
+  --gold: #c9a35f; /* единственный акцент */
+  --gold-soft: #e3c88f; /* заголовки, ссылки-акценты */
+  --gold-deep: #7a5f30; /* тени золота, бордюр активных */
+
+  --rose: #d1a1a6; /* мягкий акцент для флагманского продукта */
+  --rose-line: rgba(139, 92, 98, 0.65); /* бордюр розового блока */
+  --rose-bg: rgba(199, 143, 150, 0.07); /* заливка розового блока */
+
+  --background: var(--ink-900);
+  --background-alt: var(--ink-800);
+  --foreground: var(--bone);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-ink: var(--ink-700);
+  --color-bone: var(--bone);
+  --color-muted: var(--muted);
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --font-sans: var(--font-body);
+  --font-display: var(--font-display);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
+}
+
+/* Клавиатурный фокус — золото вместо браузерного синего, только для клавиатуры (не мыши) */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Нативная кнопка по умолчанию — курсор-стрелка, а не рука; чиним глобально */
+button:not(:disabled) {
+  cursor: pointer;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body), Arial, Helvetica, sans-serif;
+  font-feature-settings: "kern", "liga";
+  -webkit-font-smoothing: antialiased;
+  min-height: 100%;
+  overflow-x: hidden;
+}
+
+img {
+  max-width: 100%;
+}
+
+.font-display {
+  font-family: var(--font-display), Georgia, "Times New Roman", serif;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+/* Тонкий штрих между секциями — вместо рамок-коробок */
+.hairline {
+  border: 0;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--ink-600) 12%,
+    var(--ink-600) 88%,
+    transparent
+  );
+}
+
+/* Метка-надзаголовок */
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.32em;
+  font-size: 0.6875rem;
+  color: var(--muted);
+}
+
+/* Спокойный «подъём» карточки на ховере — без свечения */
+.lift {
+  transition:
+    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.4s ease,
+    background-color 0.4s ease;
+}
+.lift:hover {
+  transform: translateY(-3px);
+}
+
+/* Первичная кнопка — матовое золото, не градиент-неон */
+.btn-gold {
+  background: var(--gold);
+  color: #1a1408;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  transition:
+    background-color 0.3s ease,
+    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.btn-gold:hover {
+  background: var(--gold-soft);
+  transform: translateY(-1px);
+}
+
+/* Вторичная — обводка-хайрлайн */
+.btn-ghost {
+  border: 1px solid var(--ink-600);
+  color: var(--bone-dim);
+  transition:
+    border-color 0.3s ease,
+    color 0.3s ease;
+}
+.btn-ghost:hover {
+  border-color: var(--gold);
+  color: var(--gold-soft);
+}
+
+/* Одно мягкое пятно света за героем — не glow на элементах, а свет в сцене */
+.stage-light {
+  background: radial-gradient(
+    ellipse 60% 50% at 50% 38%,
+    rgba(201, 163, 95, 0.1),
+    transparent 70%
+  );
+}
+
+/* Мягкое золотое сияние за иконкой-медальоном в карточках каталога */
+.icon-halo {
+  position: relative;
+}
+.icon-halo::before {
+  content: "";
+  position: absolute;
+  inset: -42%;
+  border-radius: 9999px;
+  background: radial-gradient(
+    closest-side,
+    rgba(201, 163, 95, 0.28),
+    rgba(201, 163, 95, 0.07) 55%,
+    transparent 78%
+  );
+  filter: blur(14px);
+  pointer-events: none;
+  opacity: 0.8;
+  transition: opacity 0.4s ease;
+}
+.group:hover .icon-halo::before {
+  opacity: 1;
+}
+
+/* Тёплый ореол за карточкой героя, чтобы она не сливалась с фоном */
+.card-halo {
+  position: absolute;
+  inset: -16% -18%;
+  border-radius: 9999px;
+  background: radial-gradient(
+    closest-side,
+    rgba(201, 163, 95, 0.18),
+    rgba(201, 163, 95, 0.06) 52%,
+    transparent 80%
+  );
+  filter: blur(44px);
+  pointer-events: none;
+}
+
+/* Вытянутая карта (расклады от 7 карт): сперва крупно в центре стола, затем едет
+   и уменьшается в свой слот. См. SpreadClient.tsx — left/top/transform меняются
+   в React-состоянии, тут только анимация перехода между ними. */
+.hero-card {
+  transition:
+    left 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    top 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.hero-card-glow {
+  position: absolute;
+  inset: -30%;
+  border-radius: 9999px;
+  background: radial-gradient(
+    closest-side,
+    rgba(201, 163, 95, 0.22),
+    rgba(201, 163, 95, 0.05) 55%,
+    transparent 80%
+  );
+  filter: blur(28px);
+  pointer-events: none;
+}
+
+/* ── Механика карт (используется движком раскладов /spread) ─────────────── */
+
+.card-flip {
+  perspective: 1200px;
+}
+
+.card-flip-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+  transform-style: preserve-3d;
+}
+
+.card-flip-inner.is-flipped {
+  transform: rotateY(180deg);
+}
+
+.card-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.card-face-back {
+  transform: rotateY(180deg);
+}
+
+/* Рубашка карты — тёмный мистический орнамент */
+.card-back-pattern {
+  background-color: #0a0908;
+  background-image: url("/card-back.svg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border: 1px solid var(--gold-deep);
+}
+
+/* Пустое место под карту — подсказка «положите карту сюда» */
+.card-slot {
+  border: 1px dashed rgba(201, 163, 95, 0.28);
+  border-radius: 0.5rem;
+  background: rgba(201, 163, 95, 0.035);
+}
+
+/* Карта в колоде — слегка вытягивается при наведении */
+.deck-card {
+  position: relative;
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.deck-card:hover {
+  transform: translateY(-14px);
+  z-index: 5;
+}
+
+/* Подложка-сукно под разложенными картами */
+.spread-surface {
+  position: absolute;
+  inset: -3.5% -3%;
+  z-index: 0;
+  border-radius: 18px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(40, 30, 22, 0.55),
+      rgba(19, 14, 11, 0.6)
+    ),
+    radial-gradient(
+      ellipse at 50% 38%,
+      rgba(52, 39, 28, 0.55),
+      transparent 72%
+    );
+  border: 1px solid rgba(201, 163, 95, 0.13);
+  box-shadow:
+    inset 0 1px 0 rgba(201, 163, 95, 0.05),
+    inset 0 0 60px rgba(0, 0, 0, 0.5),
+    0 30px 60px -30px rgba(0, 0, 0, 0.7);
+}
+/* внутренняя тонкая рамка сукна */
+.spread-surface::after {
+  content: "";
+  position: absolute;
+  inset: 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(201, 163, 95, 0.09);
+}
+
+/* Мягкая тень-подложка под колодой */
+.deck-surface {
+  position: absolute;
+  inset: -30% -6% -40%;
+  z-index: 0;
+  border-radius: 46% / 60%;
+  background: radial-gradient(
+    ellipse at 50% 50%,
+    rgba(40, 30, 22, 0.75),
+    transparent 78%
+  );
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.15;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.star {
+  position: absolute;
+  border-radius: 9999px;
+  background: var(--bone);
+  animation: twinkle 4s ease-in-out infinite;
+}
+
+/* Появление куска разбора по мере стриминга от AI-таролога */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.fade-in {
+  animation: fade-in 0.35s ease both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .card-flip-inner,
+  .lift,
+  .btn-gold,
+  .btn-ghost,
+  .deck-card,
+  .icon-halo::before,
+  .hero-card,
+  nav[aria-label="Навигация"] {
+    transition: none;
+  }
+  .star {
+    animation: none;
+  }
+  .fade-in {
+    animation: none;
+  }
 }
