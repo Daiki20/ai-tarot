@@ -103,6 +103,9 @@ export default function MobileNav() {
     };
   }, []);
 
+  // Админка — свой интерфейс, потребительское меню там не нужно.
+  if (pathname.startsWith("/admin")) return null;
+
   return (
     <nav
       aria-label="Навигация"

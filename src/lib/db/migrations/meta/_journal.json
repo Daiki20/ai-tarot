@@ -8,6 +8,20 @@
       "when": 1788500747087,
       "tag": "0000_thick_lilandra",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1788783071258,
+      "tag": "0001_foamy_warbird",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788788585934,
+      "tag": "0002_third_black_cat",
+      "breakpoints": true
     }
   ]
 }

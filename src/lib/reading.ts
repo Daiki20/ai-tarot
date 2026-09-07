@@ -52,7 +52,7 @@ export function parseReadingLine(line: string): ReadingStreamEvent | null {
   return null;
 }
 
-const VOICE = `Ты — AI-таролог сервиса AI TAROT. Пишешь по-русски, обращение на «вы».
+const VOICE = `Ты — AI-таролог сервиса TarvenAI. Пишешь по-русски, обращение на «вы».
 Тон: тёплый, спокойный, точный. Без эзотерического жаргона, без гарантий и обещаний,
 без восторженных восклицаний. Не запугиваешь.
 

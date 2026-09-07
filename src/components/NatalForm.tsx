@@ -10,7 +10,13 @@ interface Geo {
   lon: number;
 }
 
-export default function NatalForm({ defaultName = "" }: { defaultName?: string }) {
+export default function NatalForm({
+  defaultName = "",
+  next,
+}: {
+  defaultName?: string;
+  next?: string;
+}) {
   const router = useRouter();
 
   const [name, setName] = useState(defaultName);
@@ -86,7 +92,7 @@ export default function NatalForm({ defaultName = "" }: { defaultName?: string }
         setLoading(false);
         return;
       }
-      router.push("/profile");
+      router.push(next ?? "/profile");
       router.refresh();
     } catch {
       setError("Нет связи с сервером. Попробуйте позже.");

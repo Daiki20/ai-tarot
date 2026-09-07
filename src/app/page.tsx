@@ -1,8 +1,9 @@
-import Link from "next/link";
 import Image from "next/image";
 import { READINGS } from "@/data/readings";
 import { cardsWordNominative } from "@/lib/pluralize";
+import { getCurrentUser } from "@/lib/auth";
 import ReadingIcon from "@/components/ReadingIcon";
+import GatedLink from "@/components/GatedLink";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import Price from "@/components/Price";
@@ -42,7 +43,9 @@ const ANCHOR_FEATURES = [
   },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const authed = !!(await getCurrentUser());
+
   return (
     <div className="flex-1 flex flex-col">
       <SiteHeader />
@@ -53,7 +56,7 @@ export default function Home() {
           <div className="stage-light absolute inset-0 pointer-events-none" />
           <div className="relative mx-auto max-w-[1620px] px-4 sm:px-6 pt-12 pb-16 sm:pt-20 sm:pb-24 grid grid-cols-1 lg:grid-cols-[1.05fr_0.95fr] gap-10 lg:gap-16 items-center">
             <div className="min-w-0">
-              <p className="eyebrow mb-6">Таро с искусственным интеллектом</p>
+              <p className="eyebrow mb-6">Лучший ИИ-таролог онлайн</p>
               <h1 className="font-display text-[2rem] leading-[1.1] sm:text-[2.75rem] lg:text-[3.5rem] sm:leading-[1.08] text-[var(--bone)]">
                 Узнайте, что карты говорят о{" "}
                 <span className="italic text-[var(--gold-soft)]">вашей ситуации</span>
@@ -120,9 +123,10 @@ export default function Home() {
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {READING_CARDS.map((r) => (
-              <Link
+              <GatedLink
                 key={r.id}
                 href={`${r.href}?r=${r.id}`}
+                authed={authed}
                 className="lift group flex flex-col rounded-xl border border-[var(--ink-600)] bg-[var(--ink-800)] p-6 hover:border-[var(--gold-deep)]"
               >
                 <div className="icon-halo w-16 h-16 grid place-items-center rounded-2xl border border-[var(--gold-deep)] bg-[rgba(201,163,95,0.06)] text-[var(--gold)]">
@@ -169,12 +173,13 @@ export default function Home() {
                     </span>
                   </span>
                 </div>
-              </Link>
+              </GatedLink>
             ))}
           </div>
 
           {ANCHOR_READING && (
-            <Link
+            <GatedLink
+              authed={authed}
               href={`${ANCHOR_READING.href}?r=${ANCHOR_READING.id}`}
               style={{
                 backgroundImage:
@@ -229,7 +234,7 @@ export default function Home() {
                   <Price amount={ANCHOR_READING.price} /> · разовая оплата
                 </span>
               </div>
-            </Link>
+            </GatedLink>
           )}
         </section>
 
@@ -257,10 +262,10 @@ export default function Home() {
                 — и отвечает с учётом того, что уже выпадало.
               </p>
               <p className="mt-4 text-sm text-[var(--muted)] leading-relaxed">
-                К раскладам «Прогноз на месяц», «Карьера и деньги» и «Полный
-                расклад» диалог идёт{" "}
+                К раскладам «Карьера и деньги» и «Полный расклад» диалог идёт{" "}
                 <span className="text-[var(--gold-soft)]">бесплатно</span> —
-                доплачивать не нужно.
+                доплачивать не нужно. К остальным — доступ к диалогу за{" "}
+                <Price amount={49} className="text-[var(--gold-soft)]" />.
               </p>
             </div>
 
@@ -322,6 +327,7 @@ export default function Home() {
                 text: "Одна карта на сегодня — тон дня и короткая подсказка.",
                 href: "/spread/day",
                 cta: "Вытянуть карту",
+                gated: false,
               },
               {
                 id: "matrix",
@@ -329,6 +335,7 @@ export default function Home() {
                 text: "Дата рождения раскладывается на арканы: характер, ресурс, предназначение.",
                 href: "/matrix",
                 cta: "Рассчитать",
+                gated: true,
               },
               {
                 id: "full",
@@ -336,11 +343,14 @@ export default function Home() {
                 text: "Справочник всех 78 карт — прямое и перевёрнутое значение.",
                 href: "/cards",
                 cta: "Открыть справочник",
+                gated: false,
               },
             ].map((t) => (
-              <Link
+              <GatedLink
                 key={t.id}
                 href={t.href}
+                authed={authed}
+                gated={t.gated}
                 className="lift group flex flex-col rounded-xl border border-[var(--ink-600)] bg-[var(--ink-800)] p-6 hover:border-[var(--gold-deep)]"
               >
                 <div className="flex items-start justify-between gap-4">
@@ -363,7 +373,7 @@ export default function Home() {
                     →
                   </span>
                 </span>
-              </Link>
+              </GatedLink>
             ))}
           </div>
         </section>

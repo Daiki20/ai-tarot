@@ -1,9 +1,12 @@
+import { and, eq, gte } from "drizzle-orm";
 import { getOpenAI, OPENAI_READING_MODEL } from "@/lib/openai";
 import { getSpreadById } from "@/data/spreads";
 import { getCardById } from "@/data/cards";
 import { buildReadingMessages, parseReadingLine } from "@/lib/reading";
 import { getNatalContext } from "@/lib/natal/context";
 import { getCurrentUser } from "@/lib/auth";
+import { isAdmin } from "@/lib/admin";
+import { mskDayStart, nextMskDayStart } from "@/lib/time";
 import { db } from "@/lib/db";
 import { readings } from "@/lib/db/schema";
 
@@ -47,6 +50,38 @@ export async function POST(req: Request) {
 
   // Натальный фон и пользователь — из сессии, не из тела запроса.
   const [natalCtx, user] = await Promise.all([getNatalContext(), getCurrentUser()]);
+
+  // Гейт: всё, кроме «Карты дня», — только для авторизованных.
+  if (spread.id !== "day" && !user) {
+    return Response.json({ error: "auth required" }, { status: 401 });
+  }
+  // «Карту дня» залогиненному отдаём раз в сутки (сброс в 00:00 МСК). Админ — без лимита.
+  if (spread.id === "day" && user && !isAdmin(user)) {
+    try {
+      const already = await db
+        .select({ id: readings.id })
+        .from(readings)
+        .where(
+          and(
+            eq(readings.userId, user.id),
+            eq(readings.spreadId, "day"),
+            gte(readings.createdAt, mskDayStart()),
+          ),
+        )
+        .limit(1);
+      if (already.length > 0) {
+        return Response.json(
+          {
+            error: "day card already drawn today",
+            nextAt: nextMskDayStart().toISOString(),
+          },
+          { status: 409 },
+        );
+      }
+    } catch {
+      // БД недоступна — не блокируем розыгрыш карты
+    }
+  }
 
   const positionCount = spread.positions.length;
   const encoder = new TextEncoder();

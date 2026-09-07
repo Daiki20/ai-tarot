@@ -1,6 +1,6 @@
-# AI Tarot
+# TarvenAI
 
-Премиальный сервис таро с AI-тарологом. Next.js 16 (App Router, Turbopack),
+TarvenAI — сервис таро с ИИ-тарологом. Next.js 16 (App Router, Turbopack),
 React 19, Tailwind v4, PostgreSQL (Neon) + Drizzle, OpenAI.
 
 ## Запуск

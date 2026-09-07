@@ -47,7 +47,7 @@ export default function ChatUpsell({
         Открыть диалог · <Price amount={price} />
       </button>
       <p className="mt-2 text-xs text-[var(--muted)]">
-        половина стоимости расклада
+        разовая оплата, без подписки
       </p>
     </div>
   );

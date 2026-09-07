@@ -8,8 +8,9 @@ import PayModal from "@/components/PayModal";
 import Spinner from "@/components/Spinner";
 import ChatPanel from "@/components/ChatPanel";
 import Price from "@/components/Price";
+import { DAY_DEEP_PRICE } from "@/lib/pricing";
 
-const PRICE = 99;
+const PRICE = DAY_DEEP_PRICE;
 
 export default function DayDeep({
   cardId,
@@ -256,6 +257,7 @@ export default function DayDeep({
           title="День подробно"
           subtitle="Утро, день и вечер · поддержка и предостережение · чат с AI-тарологом"
           price={PRICE}
+          purpose={{ kind: "day-deep" }}
           onPay={() => {
             setPaid(true);
             setShowPay(false);

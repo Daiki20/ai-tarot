@@ -191,29 +191,6 @@ img {
   pointer-events: none;
 }
 
-/* Вытянутая карта (расклады от 7 карт): сперва крупно в центре стола, затем едет
-   и уменьшается в свой слот. См. SpreadClient.tsx — left/top/transform меняются
-   в React-состоянии, тут только анимация перехода между ними. */
-.hero-card {
-  transition:
-    left 0.6s cubic-bezier(0.22, 1, 0.36, 1),
-    top 0.6s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-}
-.hero-card-glow {
-  position: absolute;
-  inset: -30%;
-  border-radius: 9999px;
-  background: radial-gradient(
-    closest-side,
-    rgba(201, 163, 95, 0.22),
-    rgba(201, 163, 95, 0.05) 55%,
-    transparent 80%
-  );
-  filter: blur(28px);
-  pointer-events: none;
-}
-
 /* ── Механика карт (используется движком раскладов /spread) ─────────────── */
 
 .card-flip {
@@ -359,7 +336,6 @@ img {
   .btn-ghost,
   .deck-card,
   .icon-halo::before,
-  .hero-card,
   nav[aria-label="Навигация"] {
     transition: none;
   }

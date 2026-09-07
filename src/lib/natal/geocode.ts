@@ -17,7 +17,7 @@ export interface GeoResult {
 }
 
 const ENDPOINT = "https://nominatim.openstreetmap.org/search";
-const UA = "AI-Tarot/1.0 (natal chart birthplace lookup)";
+const UA = "TarvenAI/1.0 (natal chart birthplace lookup)";
 
 export async function geocodeCity(query: string): Promise<GeoResult | null> {
   const q = query.trim();

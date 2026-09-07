@@ -13,10 +13,13 @@ import PayModal from "@/components/PayModal";
 import Spinner from "@/components/Spinner";
 import TarotCardView from "@/components/TarotCardView";
 import { cardsWordAccusative, cardsWordNominative } from "@/lib/pluralize";
+import { CHAT_ADDON_PRICE } from "@/lib/pricing";
 
 interface Paywall {
   title: string;
   price: number;
+  chat: boolean; // диалог с AI-тарологом включён в расклад бесплатно
+  readingKey: string; // id продукта-витрины (readings.ts) — за что списываем
 }
 
 interface DrawnCard {
@@ -24,16 +27,6 @@ interface DrawnCard {
   reversed: boolean;
   revealed: boolean;
 }
-
-interface HeroCard {
-  cardId: string;
-  reversed: boolean;
-  index: number; // куда карта в итоге ляжет
-}
-
-// Натуральная ширина карты «крупным планом» в центре стола (масштабируется вместе
-// со столом через zoom — на телефоне это всё равно заметно крупнее, чем в слоте).
-const HERO_WIDTH = 220;
 
 function shuffledIds(): string[] {
   const ids = CARDS.map((c) => c.id);
@@ -70,8 +63,6 @@ export default function SpreadClient({
   const chatRef = useRef<HTMLDivElement>(null);
   const boardRef = useRef<HTMLDivElement>(null);
   const [boardW, setBoardW] = useState(0);
-  const [heroCard, setHeroCard] = useState<HeroCard | null>(null);
-  const [heroSettled, setHeroSettled] = useState(false);
 
   // Замеряем ширину поля расклада — по ней масштабируем всю раскладку целиком.
   useEffect(() => {
@@ -92,29 +83,6 @@ export default function SpreadClient({
     }, 150);
     return () => clearTimeout(t);
   }, [drawn]);
-
-  // Раскладах от 7 карт: вытянутая карта сперва показывается крупно в центре стола,
-  // затем едет и уменьшается в свой слот. До 7 карт — обычный флип на месте (выше).
-  const useHeroReveal = spread.cardCount >= 7;
-
-  useEffect(() => {
-    if (!heroCard || heroSettled) return;
-    const t = setTimeout(() => setHeroSettled(true), 1300);
-    return () => clearTimeout(t);
-  }, [heroCard, heroSettled]);
-
-  useEffect(() => {
-    if (!heroCard || !heroSettled) return;
-    const t = setTimeout(() => {
-      setDrawn((prev) => [
-        ...prev,
-        { cardId: heroCard.cardId, reversed: heroCard.reversed, revealed: true },
-      ]);
-      setHeroCard(null);
-      setHeroSettled(false);
-    }, 650);
-    return () => clearTimeout(t);
-  }, [heroCard, heroSettled]);
 
   const complete = drawn.length === spread.cardCount;
   const allRevealed = complete && drawn.every((d) => d.revealed);
@@ -219,14 +187,9 @@ export default function SpreadClient({
   }, [allRevealed, spread.id, question, drawn]);
 
   function handleDraw(cardId: string) {
-    if (drawn.length >= spread.cardCount || heroCard) return;
+    if (drawn.length >= spread.cardCount) return;
     const reversed = Math.random() < 0.5;
-    if (useHeroReveal) {
-      setHeroCard({ cardId, reversed, index: drawn.length });
-      setHeroSettled(false);
-    } else {
-      setDrawn((prev) => [...prev, { cardId, reversed, revealed: false }]);
-    }
+    setDrawn((prev) => [...prev, { cardId, reversed, revealed: false }]);
   }
 
   function reset() {
@@ -237,22 +200,20 @@ export default function SpreadClient({
     setAdvice("");
     setReadingDone(false);
     setReadingError(false);
-    setHeroCard(null);
-    setHeroSettled(false);
     fetchStarted.current = false;
   }
 
   const remainingDeck = deckOrder.filter(
-    (id) => !drawn.some((d) => d.cardId === id) && id !== heroCard?.cardId,
+    (id) => !drawn.some((d) => d.cardId === id),
   );
 
   // Колода под выбор: на узких экранах меньше карт и они компактнее.
   const narrow = boardW > 0 && boardW < 560;
 
   // «Натуральный» размер поля — раскладка спроектирована под него, дальше просто масштабируется.
-  // На телефоне для больших раскладов (от 7 карт) стол вытягиваем по высоте и берём
-  // карты покрупнее — ширина всё равно зажата экраном, а по вертикали обычно есть
-  // запас (страница станет чуть длиннее, но карты будут читаемыми).
+  // На телефоне для больших раскладов (кельтский крест) стол вытягиваем по высоте и
+  // берём карты покрупнее — ширина всё равно зажата экраном, а по вертикали обычно
+  // есть запас (страница станет чуть длиннее, но карты будут читаемыми).
   const bigSpread = spread.cardCount > 6;
   const positionCardWidth = bigSpread
     ? narrow
@@ -265,7 +226,10 @@ export default function SpreadClient({
         : 86;
   const NATURAL_W = bigSpread ? 820 : 680;
   const [aspW, aspH] = spread.containerAspect.split("/").map(Number);
-  const heightBoost = bigSpread && narrow ? 1.85 : 1;
+  // На телефоне стол вытягиваем по высоте: у больших раскладов — сильно (иначе
+  // карты нечитаемы), у остальных — умеренно, чтобы верхняя/нижняя подписи
+  // («Вызов», «Потенциал») не упирались в край стола.
+  const heightBoost = narrow ? (bigSpread ? 1.85 : 1.35) : 1;
   const NATURAL_H = NATURAL_W * (aspH / aspW) * heightBoost;
   // На больших экранах не раздуваем стол больше натурального размера.
   const boardScale = boardW > 0 ? Math.min(1, boardW / NATURAL_W) : 1;
@@ -274,10 +238,11 @@ export default function SpreadClient({
   const deckVisible = narrow ? 12 : 20;
 
   const needsPayment = !!paywall && !paid;
-  const chatAddonPrice = paywall ? Math.round(paywall.price / 2) : 0;
-  // Диалог с AI-тарологом: встроен в расклад, докуплен или доступен как допродажа.
-  const chatUnlocked = !!spread.chat || chatAddonPaid;
-  const chatOffered = !spread.chat && !!paywall;
+  const chatAddonPrice = CHAT_ADDON_PRICE;
+  // Диалог с AI-тарологом: включён в расклад (paywall.chat), докуплен или доступен как допродажа.
+  const chatIncluded = !!paywall?.chat;
+  const chatUnlocked = chatIncluded || chatAddonPaid;
+  const chatOffered = !chatIncluded && !!paywall;
 
   if (!started) {
     return (
@@ -322,6 +287,7 @@ export default function SpreadClient({
               spread.cardCount,
             )} · разбор AI-таролога`}
             price={paywall.price}
+            purpose={{ kind: "reading", readingKey: paywall.readingKey }}
             onPay={() => {
               setPaid(true);
               setShowPay(false);
@@ -361,34 +327,24 @@ export default function SpreadClient({
           style={{ width: NATURAL_W, height: NATURAL_H, zoom: boardScale }}
         >
           <div aria-hidden className="spread-surface" />
-          {heroCard && (
-            <div
-              className="hero-card absolute z-20"
-              style={{
-                left: heroSettled ? `${spread.positions[heroCard.index].x}%` : "50%",
-                top: heroSettled ? `${spread.positions[heroCard.index].y}%` : "50%",
-                transform: `translate(-50%, -50%) scale(${
-                  heroSettled ? positionCardWidth / HERO_WIDTH : 1
-                })`,
-              }}
-            >
-              {!heroSettled && <div aria-hidden className="hero-card-glow" />}
-              <TarotCardView
-                card={getCardById(heroCard.cardId) ?? null}
-                faceUp
-                reversed={heroCard.reversed}
-                width={HERO_WIDTH}
-              />
-            </div>
-          )}
           {spread.positions.map((pos, i) => {
               const d = drawn[i];
               const card = d ? getCardById(d.cardId) : null;
-              const side = pos.labelSide ?? (pos.rotate ? "top" : "bottom");
+              const rawSide = pos.labelSide ?? (pos.rotate ? "top" : "bottom");
+              // На телефоне боковые подписи уводят текст за край стола — сносим их
+              // под карту и разрешаем перенос в 2 строки в пределах ширины карты.
+              const side =
+                narrow && (rawSide === "left" || rawSide === "right")
+                  ? "bottom"
+                  : rawSide;
               const labelStyle: CSSProperties = {
                 color: "var(--bone-dim)",
                 textShadow: "0 1px 3px rgba(0,0,0,0.7)",
               };
+              if (narrow) {
+                labelStyle.width = Math.round(positionCardWidth * 1.9);
+                labelStyle.whiteSpace = "normal";
+              }
               if (side === "bottom") {
                 Object.assign(labelStyle, {
                   left: "50%",
@@ -440,7 +396,9 @@ export default function SpreadClient({
                     )}
                   </div>
                   <span
-                    className="absolute text-xs uppercase tracking-wide text-center whitespace-nowrap"
+                    className={`absolute text-xs uppercase tracking-wide text-center ${
+                      narrow ? "leading-tight" : "whitespace-nowrap"
+                    }`}
                     style={labelStyle}
                   >
                     {pos.label}
@@ -499,7 +457,7 @@ export default function SpreadClient({
             </p>
           )}
 
-          {reading && (spread.chat || chatOffered) && (
+          {reading && (chatIncluded || chatOffered) && (
             <div className="text-center mt-4">
               <button
                 onClick={() =>
@@ -593,7 +551,7 @@ export default function SpreadClient({
             <DayDeep cardId={drawn[0].cardId} reversed={drawn[0].reversed} />
           )}
 
-          {reading && (spread.chat || chatOffered) && (
+          {reading && (chatIncluded || chatOffered) && (
             <div ref={chatRef} className="scroll-mt-20">
               {chatUnlocked ? (
                 <ChatPanel
@@ -616,6 +574,7 @@ export default function SpreadClient({
               title="Диалог с AI-тарологом"
               subtitle={`По раскладу «${spread.name}» · AI помнит все карты`}
               price={chatAddonPrice}
+              purpose={{ kind: "chat-addon" }}
               onPay={() => {
                 setChatAddonPaid(true);
                 setShowChatPay(false);
@@ -624,15 +583,17 @@ export default function SpreadClient({
             />
           )}
 
-          <div className="text-center mt-5">
-            <Link
-              href="/"
-              className="inline-block rounded-full px-6 py-2 text-sm border transition-colors hover:bg-[var(--gold)]/10"
-              style={{ borderColor: "var(--gold)", color: "var(--gold-soft)" }}
-            >
-              Закончить расклад
-            </Link>
-          </div>
+          {readingDone && (
+            <div className="text-center mt-5">
+              <Link
+                href="/"
+                className="inline-block rounded-full px-6 py-2 text-sm border transition-colors hover:bg-[var(--gold)]/10"
+                style={{ borderColor: "var(--gold)", color: "var(--gold-soft)" }}
+              >
+                Закончить расклад
+              </Link>
+            </div>
+          )}
         </div>
       )}
     </div>

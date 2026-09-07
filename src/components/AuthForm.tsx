@@ -2,12 +2,16 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Spinner from "@/components/Spinner";
 
 // Форма входа/регистрации. Намеренно простая — авторизацию будут переделывать.
 export default function AuthForm({ mode }: { mode: "login" | "register" }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  // Куда вернуть человека после авторизации (то, что он нажал до попапа).
+  const next = searchParams.get("next");
+  const nextQuery = next ? `?next=${encodeURIComponent(next)}` : "";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -34,7 +38,13 @@ export default function AuthForm({ mode }: { mode: "login" | "register" }) {
         setLoading(false);
         return;
       }
-      router.push(data.next ?? "/profile");
+      if (isRegister) {
+        // После регистрации — обязательный онбординг натальной карты,
+        // а уже он вернёт человека на исходное действие.
+        router.push(`/onboarding/natal${nextQuery}`);
+      } else {
+        router.push(next ?? data.next ?? "/profile");
+      }
       router.refresh();
     } catch {
       setError("Нет связи с сервером. Попробуйте позже.");
@@ -107,14 +117,20 @@ export default function AuthForm({ mode }: { mode: "login" | "register" }) {
         {isRegister ? (
           <>
             Уже есть аккаунт?{" "}
-            <Link href="/login" className="text-[var(--gold-soft)] hover:underline">
+            <Link
+              href={`/login${nextQuery}`}
+              className="text-[var(--gold-soft)] hover:underline"
+            >
               Войти
             </Link>
           </>
         ) : (
           <>
             Нет аккаунта?{" "}
-            <Link href="/register" className="text-[var(--gold-soft)] hover:underline">
+            <Link
+              href={`/register${nextQuery}`}
+              className="text-[var(--gold-soft)] hover:underline"
+            >
               Зарегистрироваться
             </Link>
           </>

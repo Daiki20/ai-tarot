@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Playfair_Display, Inter } from "next/font/google";
 import "./globals.css";
 import MobileNav from "@/components/MobileNav";
+import VisitBeacon from "@/components/VisitBeacon";
 
 // Дисплейный сериф с высоким контрастом — «editorial», а не сток-мистик.
 const playfair = Playfair_Display({
@@ -18,9 +19,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "AI Tarot · Карты знают ответ",
+  title: "TarvenAI · Лучший ИИ-таролог онлайн",
   description:
-    "Задайте вопрос — AI-таролог выберет расклад, откроет карты и объяснит их простым языком. Первый короткий расклад бесплатно.",
+    "TarvenAI — лучший ИИ-таролог онлайн. Задайте вопрос обычными словами: ИИ выберет расклад, откроет карты и объяснит их простым языком.",
 };
 
 export const viewport: Viewport = {
@@ -38,6 +39,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col pb-[calc(4.5rem_+_env(safe-area-inset-bottom))] lg:pb-0">
         {children}
         <MobileNav />
+        <VisitBeacon />
       </body>
     </html>
   );

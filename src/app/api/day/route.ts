@@ -2,11 +2,16 @@ import { getOpenAI, OPENAI_READING_MODEL } from "@/lib/openai";
 import { getCardById } from "@/data/cards";
 import { buildDayMessages, parseDayLine } from "@/lib/day-reading";
 import { getNatalContext } from "@/lib/natal/context";
+import { getCurrentUser } from "@/lib/auth";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
 export async function POST(req: Request) {
+  if (!(await getCurrentUser())) {
+    return Response.json({ error: "auth required" }, { status: 401 });
+  }
+
   const body = (await req.json().catch(() => null)) as {
     cardId?: unknown;
     reversed?: unknown;

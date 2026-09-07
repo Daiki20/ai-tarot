@@ -25,10 +25,60 @@ export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
   email: text("email").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
+  // 'user' | 'admin'. Админ не тратит aura и видит /admin. См. src/lib/admin.ts
+  role: text("role").notNull().default("user"),
   // Проставляется, когда пользователь заполнил натальную карту. null = онбординг не завершён.
   natalCompletedAt: timestamp("natal_completed_at", { withTimezone: true }),
+  // Баланс в валюте aura (1 aura = 1 ₽). Меняется только через wallet.ts
+  // (списание за расклад, пополнение по вебхуку ЮKassa) — всегда вместе с записью в transactions.
+  auraBalance: integer("aura_balance").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+// Счётчик посещений по дням (МСК). Пишется маячком с любой страницы, раз в сессию.
+export const dailyVisits = pgTable("daily_visits", {
+  day: date("day").primaryKey(), // YYYY-MM-DD по Москве
+  count: integer("count").notNull().default(0),
+});
+
+// Леджер движения aura. Баланс users.auraBalance = сумма amount по всем строкам пользователя.
+export const transactions = pgTable(
+  "transactions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    amount: integer("amount").notNull(), // + пополнение, − списание
+    kind: text("kind").notNull(), // 'spend' | 'topup' | 'bonus' | 'refund'
+    ref: text("ref"), // за что: 'reading:celtic', 'chat-addon', 'matrix-full', 'day-deep', 'yookassa:<id>'
+    balanceAfter: integer("balance_after").notNull(),
+    meta: jsonb("meta"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [index("transactions_user_id_idx").on(t.userId)],
+);
+
+// Пополнения через ЮKassa. Одна строка на попытку оплаты; статус обновляется вебхуком.
+export const payments = pgTable(
+  "payments",
+  {
+    id: text("id").primaryKey(), // id платежа в ЮKassa
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    aura: integer("aura").notNull(), // сколько aura начислить при успехе
+    amountRub: numeric("amount_rub", { precision: 12, scale: 2 }).notNull(),
+    status: text("status").notNull().default("pending"), // 'pending' | 'succeeded' | 'canceled'
+    creditedAt: timestamp("credited_at", { withTimezone: true }), // когда aura зачислены (защита от повторного вебхука)
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [index("payments_user_id_idx").on(t.userId)],
+);
 
 export const sessions = pgTable(
   "sessions",
@@ -101,3 +151,6 @@ export type User = typeof users.$inferSelect;
 export type Session = typeof sessions.$inferSelect;
 export type NatalChart = typeof natalCharts.$inferSelect;
 export type Reading = typeof readings.$inferSelect;
+export type Transaction = typeof transactions.$inferSelect;
+export type Payment = typeof payments.$inferSelect;
+export type DailyVisit = typeof dailyVisits.$inferSelect;

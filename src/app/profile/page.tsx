@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { desc, eq } from "drizzle-orm";
@@ -7,18 +8,16 @@ import SiteFooter from "@/components/SiteFooter";
 import AuraMark from "@/components/AuraMark";
 import LogoutButton from "@/components/LogoutButton";
 import NatalChartView from "@/components/NatalChartView";
+import TopupButton from "@/components/TopupButton";
+import TopupReturn from "@/components/TopupReturn";
 import { getCurrentUserWithNatal } from "@/lib/auth";
+import { getBalance } from "@/lib/wallet";
+import { reconcilePending } from "@/lib/payments";
 import { db } from "@/lib/db";
 import { readings, natalCharts } from "@/lib/db/schema";
 import { computeNatalChart, type NatalChart } from "@/lib/natal/compute";
 
-export const metadata: Metadata = { title: "Профиль — AI Tarot" };
-
-const PACKS = [
-  { aura: 1000, bonus: 0 },
-  { aura: 2000, bonus: 150 },
-  { aura: 5000, bonus: 600 },
-];
+export const metadata: Metadata = { title: "Профиль — TarvenAI" };
 
 const KIND_LABEL: Record<string, string> = {
   spread: "Расклад",
@@ -61,6 +60,17 @@ export default async function ProfilePage() {
   if (!ctx.natal) redirect("/onboarding/natal");
 
   const { user, natal } = ctx;
+
+  // Подстраховка на случай, если вебхук ЮKassa не дошёл: при заходе на профиль
+  // (в т.ч. после возврата со страницы оплаты) сверяем «висящие» платежи.
+  const { credited } = await reconcilePending(user.id).catch(() => ({
+    credited: 0,
+  }));
+  const balance =
+    credited > 0
+      ? await getBalance(user.id).catch(() => user.auraBalance)
+      : user.auraBalance;
+
   let chart = natal.chart as NatalChart;
 
   // Карты старого формата (без колеса/достоинств) пересчитываем из сохранённых
@@ -108,6 +118,9 @@ export default async function ProfilePage() {
     <>
       <SiteHeader />
       <main className="flex-1 w-full mx-auto max-w-[1620px] px-4 sm:px-6 py-12 sm:py-16">
+        <Suspense fallback={null}>
+          <TopupReturn />
+        </Suspense>
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <p className="eyebrow mb-1">Аккаунт</p>
@@ -122,45 +135,21 @@ export default async function ProfilePage() {
           <NatalChartView chart={chart} />
 
           <div className="flex flex-col gap-4">
-            {/* Баланс — заглушка до подключения оплаты */}
             <div className="rounded-xl border border-[var(--gold-deep)] bg-[var(--ink-800)] p-6">
               <div className="flex items-center justify-between gap-4">
                 <h2 className="font-display text-xl text-[var(--gold-soft)]">Баланс</h2>
                 <span className="inline-flex items-center gap-1.5 font-display text-2xl text-[var(--bone)]">
-                  0
+                  {balance.toLocaleString("ru-RU")}
                   <AuraMark className="inline-block w-[0.8em] h-[0.8em] text-[var(--gold)]" />
                 </span>
               </div>
               <p className="mt-2 text-xs text-[var(--muted)] leading-relaxed">
-                Пополняете один раз, дальше расклады списываются с баланса. 1&nbsp;
+                Пополняете баланс, дальше расклады списываются с него. 1&nbsp;
                 <AuraMark className="inline-block w-[0.85em] h-[0.85em]" /> = 1&nbsp;₽.
               </p>
-              <div className="mt-4 grid gap-2 sm:grid-cols-3">
-                {PACKS.map((p) => (
-                  <div
-                    key={p.aura}
-                    className="rounded-lg border border-[var(--ink-600)] bg-[var(--ink-900)] p-3 text-center"
-                  >
-                    <p className="font-display text-base text-[var(--gold-soft)] inline-flex items-center gap-1">
-                      +{p.aura.toLocaleString("ru-RU")}
-                      <AuraMark className="inline-block w-[0.7em] h-[0.7em]" />
-                    </p>
-                    {p.bonus > 0 && (
-                      <p className="text-[10px] text-[var(--gold)]">+{p.bonus}</p>
-                    )}
-                    <button
-                      type="button"
-                      disabled
-                      className="btn-gold mt-2 w-full rounded-full px-2 py-1.5 text-[11px] disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                      Пополнить
-                    </button>
-                  </div>
-                ))}
+              <div className="mt-4">
+                <TopupButton className="btn-gold w-full rounded-full px-6 py-2.5 text-sm" />
               </div>
-              <p className="mt-3 text-xs text-[var(--muted)]">
-                Оплата подключается на следующем этапе.
-              </p>
             </div>
           </div>
         </div>

@@ -1,6 +1,8 @@
 import Link from "next/link";
-import AuraMark from "@/components/AuraMark";
+import BalancePill from "@/components/BalancePill";
 import { getCurrentUser } from "@/lib/auth";
+import { isAdmin } from "@/lib/admin";
+import { getBalance } from "@/lib/wallet";
 
 export const NAV = [
   { label: "Расклады", href: "/#readings" },
@@ -11,14 +13,29 @@ export const NAV = [
 
 export default async function SiteHeader() {
   const user = await getCurrentUser();
+  const balance = user ? await getBalance(user.id).catch(() => 0) : 0;
   return (
     <header className="sticky top-0 z-30 backdrop-blur-md bg-[var(--ink-900)]/80 border-b border-[var(--ink-600)]">
       <div className="mx-auto max-w-[1620px] px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
-        <Link href="/" className="flex items-baseline gap-3.5 shrink-0">
-          <span className="font-display text-lg tracking-[0.22em] text-[var(--gold-soft)]">
-            AI&nbsp;TAROT
+        <Link href="/" className="flex items-center gap-2.5 shrink-0">
+          <svg
+            viewBox="0 0 64 64"
+            className="h-6 w-6 shrink-0"
+            aria-hidden="true"
+          >
+            <path
+              d="M32 6 L37.4 26.6 L58 32 L37.4 37.4 L32 58 L26.6 37.4 L6 32 L26.6 26.6 Z"
+              fill="var(--gold)"
+            />
+            <path
+              d="M32 19 L34.6 29.4 L45 32 L34.6 34.6 L32 45 L29.4 34.6 L19 32 L29.4 29.4 Z"
+              fill="var(--ink-900)"
+            />
+          </svg>
+          <span className="font-display text-lg tracking-[0.04em] text-[var(--gold-soft)]">
+            Tarven<span className="text-[var(--gold)]">AI</span>
           </span>
-          <span className="hidden sm:inline text-[11px] text-[var(--muted)] tracking-wide border-l border-[var(--ink-600)] pl-3.5">
+          <span className="hidden sm:inline text-[11px] text-[var(--muted)] tracking-wide border-l border-[var(--ink-600)] pl-3 ml-0.5">
             карты знают ответ
           </span>
         </Link>
@@ -36,15 +53,15 @@ export default async function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-2.5 sm:gap-3">
-          {/* Баланс aura — сумма-заглушка до подключения оплаты */}
-          <Link
-            href="/profile"
-            aria-label="Баланс aura"
-            className="inline-flex items-center gap-1 rounded-full border border-[var(--ink-600)] px-3 py-1.5 text-sm text-[var(--bone-dim)] hover:border-[var(--gold-deep)] hover:text-[var(--gold-soft)] transition-colors"
-          >
-            0
-            <AuraMark className="inline-block w-[0.95em] h-[0.95em]" />
-          </Link>
+          {isAdmin(user) && (
+            <Link
+              href="/admin"
+              className="hidden sm:inline text-sm text-[var(--rose)] hover:text-[var(--gold-soft)] transition-colors"
+            >
+              Админка
+            </Link>
+          )}
+          <BalancePill initial={balance} authed={!!user} />
           {user ? (
             <Link
               href="/profile"

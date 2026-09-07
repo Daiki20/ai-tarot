@@ -3,23 +3,19 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import {
-  computeMatrix,
-  computeFullMatrix,
-  type MatrixPoint,
-} from "@/lib/matrix";
+import { computeMatrix, computeFullMatrix } from "@/lib/matrix";
 import PayModal from "@/components/PayModal";
 import Spinner from "@/components/Spinner";
 import ChatPanel from "@/components/ChatPanel";
 import Price from "@/components/Price";
+import { MATRIX_FULL_PRICE } from "@/lib/pricing";
 import type { ReadingResult } from "@/lib/reading";
 
-const FULL_PRICE = 390;
+const FULL_PRICE = MATRIX_FULL_PRICE;
 
-export default function MatrixClient() {
-  const [date, setDate] = useState("");
-  const [points, setPoints] = useState<MatrixPoint[] | null>(null);
-  const [error, setError] = useState(false);
+// Дата рождения приходит из натальной карты пользователя — поля ввода больше нет.
+export default function MatrixClient({ birthDate }: { birthDate: string }) {
+  const points = useMemo(() => computeMatrix(birthDate), [birthDate]);
 
   const [showPay, setShowPay] = useState(false);
   const [paid, setPaid] = useState(false);
@@ -32,8 +28,8 @@ export default function MatrixClient() {
   const fetchStarted = useRef(false);
 
   const fullPoints = useMemo(
-    () => (paid && date ? computeFullMatrix(date) : null),
-    [paid, date],
+    () => (paid ? computeFullMatrix(birthDate) : null),
+    [paid, birthDate],
   );
   const fullLoading = paid && !fullDone && !fullError;
   const pointsRead = Object.keys(pointTexts).length;
@@ -53,23 +49,6 @@ export default function MatrixClient() {
         }
       : null;
 
-  function calc() {
-    const result = computeMatrix(date);
-    setPoints(result);
-    setError(!result);
-  }
-
-  function resetFull() {
-    setPaid(false);
-    setShowPay(false);
-    setIntro("");
-    setPointTexts({});
-    setAdvice("");
-    setFullDone(false);
-    setFullError(false);
-    fetchStarted.current = false;
-  }
-
   // После «оплаты» — стримим полный разбор матрицы (один раз).
   useEffect(() => {
     if (!paid || fetchStarted.current) return;
@@ -82,7 +61,7 @@ export default function MatrixClient() {
         const res = await fetch("/api/matrix", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ birthDate: date }),
+          body: JSON.stringify({ birthDate }),
           signal: controller.signal,
         });
         if (!res.ok || !res.body) throw new Error("http");
@@ -140,43 +119,21 @@ export default function MatrixClient() {
     })();
 
     return () => controller.abort();
-  }, [paid, date, fullPoints]);
+  }, [paid, birthDate, fullPoints]);
+
+  if (!points) {
+    return (
+      <p className="text-sm" style={{ color: "var(--rose)" }}>
+        Не удалось рассчитать матрицу по дате рождения из натальной карты.
+      </p>
+    );
+  }
 
   return (
     <div>
-      <div className="rounded-xl border border-[var(--ink-600)] bg-[var(--ink-800)] p-7 max-w-md">
-        <label htmlFor="bday" className="eyebrow block mb-3">
-          Дата рождения
-        </label>
-        <input
-          id="bday"
-          type="date"
-          value={date}
-          onChange={(e) => {
-            setDate(e.target.value);
-            setPoints(null);
-            setError(false);
-            resetFull();
-          }}
-          className="w-full rounded-md border border-[var(--ink-600)] bg-[var(--ink-900)] px-3 py-2 text-sm text-[var(--bone)] outline-none focus:border-[var(--gold)]"
-        />
-        <button
-          onClick={calc}
-          disabled={!date}
-          className="btn-gold mt-5 rounded-full px-7 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          Рассчитать матрицу
-        </button>
-        {error && (
-          <p className="mt-3 text-xs" style={{ color: "var(--rose)" }}>
-            Проверьте дату рождения.
-          </p>
-        )}
-      </div>
-
-      {points && !paid && (
+      {!paid && (
         <>
-          <div className="mt-12 grid sm:grid-cols-2 gap-px bg-[var(--ink-600)] border border-[var(--ink-600)] rounded-xl overflow-hidden">
+          <div className="grid sm:grid-cols-2 gap-px bg-[var(--ink-600)] border border-[var(--ink-600)] rounded-xl overflow-hidden">
             {points.map((p) => (
               <div key={p.key} className="bg-[var(--ink-800)] p-6 flex gap-5">
                 <div className="shrink-0 w-[88px] h-fit rounded-md overflow-hidden border border-[var(--gold-deep)] bg-[#efe7d6] p-1.5">
@@ -327,7 +284,7 @@ export default function MatrixClient() {
             <div className="mt-4">
               <ChatPanel
                 spreadName="Матрица судьбы"
-                question={date ? `дата рождения ${date}` : ""}
+                question={`дата рождения ${birthDate}`}
                 reading={matrixReading}
                 kind="matrix"
               />
@@ -352,6 +309,7 @@ export default function MatrixClient() {
           title="Полная матрица судьбы"
           subtitle="8 позиций · разбор AI-таролога · диалог с ним в чате"
           price={FULL_PRICE}
+          purpose={{ kind: "matrix-full" }}
           onPay={() => {
             setPaid(true);
             setShowPay(false);

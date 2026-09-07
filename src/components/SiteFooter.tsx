@@ -6,8 +6,8 @@ export default function SiteFooter() {
     <footer className="border-t border-[var(--ink-600)]">
       <div className="mx-auto max-w-[1620px] px-4 sm:px-6 py-10 sm:py-12 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div>
-          <p className="font-display tracking-[0.22em] text-[var(--gold-soft)]">
-            AI&nbsp;TAROT
+          <p className="font-display tracking-[0.04em] text-[var(--gold-soft)]">
+            Tarven<span className="text-[var(--gold)]">AI</span>
           </p>
           <p className="mt-2 text-xs text-[var(--muted)] max-w-sm leading-relaxed">
             18+ · Сервис создан для развлечения и саморефлексии и не заменяет

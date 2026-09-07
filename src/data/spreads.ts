@@ -16,7 +16,6 @@ export interface Spread {
   containerAspect: string;
   askQuestion?: boolean; // показывать шаг «сформулируйте вопрос» перед раскладом
   questionExample?: string; // подсказка в поле ввода, если расклад открыт без конкретного продукта
-  chat?: boolean; // после разбора открывать диалог с AI-тарологом
 }
 
 export const SPREADS: Spread[] = [
@@ -78,7 +77,6 @@ export const SPREADS: Spread[] = [
     containerAspect: "16/10",
     askQuestion: true,
     questionExample: "Что мне важно понять про свою ситуацию сейчас?",
-    chat: true,
   },
 ];
 

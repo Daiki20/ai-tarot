@@ -2,11 +2,16 @@ import { getOpenAI, OPENAI_CHAT_MODEL } from "@/lib/openai";
 import { buildChatMessages, type ChatMessage } from "@/lib/chat";
 import type { ReadingResult } from "@/lib/reading";
 import { getNatalContext } from "@/lib/natal/context";
+import { getCurrentUser } from "@/lib/auth";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
 export async function POST(req: Request) {
+  if (!(await getCurrentUser())) {
+    return Response.json({ error: "auth required" }, { status: 401 });
+  }
+
   const body = (await req.json().catch(() => null)) as {
     spreadName?: unknown;
     question?: unknown;
