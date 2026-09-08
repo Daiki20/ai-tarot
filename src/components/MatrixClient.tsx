@@ -34,7 +34,7 @@ export default function MatrixClient({ birthDate }: { birthDate: string }) {
   const fullLoading = paid && !fullDone && !fullError;
   const pointsRead = Object.keys(pointTexts).length;
 
-  // Готовый разбор как контекст для диалога с AI-тарологом (включён в 390 ₽).
+  // Готовый разбор как контекст для диалога с AI-тарологом (включён в стоимость).
   const matrixReading: ReadingResult | null =
     fullDone && fullPoints
       ? {

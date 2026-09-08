@@ -4,6 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import Spinner from "@/components/Spinner";
+import AuraMark from "@/components/AuraMark";
+import { REGISTER_BONUS } from "@/lib/pricing";
 
 // Форма входа/регистрации. Намеренно простая — авторизацию будут переделывать.
 export default function AuthForm({ mode }: { mode: "login" | "register" }) {
@@ -54,6 +56,38 @@ export default function AuthForm({ mode }: { mode: "login" | "register" }) {
 
   return (
     <div className="mx-auto w-full max-w-sm">
+      {isRegister && (
+        <div
+          className="mb-6 flex items-center gap-3.5 rounded-xl border border-[var(--gold-deep)] p-4"
+          style={{
+            backgroundImage:
+              "linear-gradient(115deg, rgba(201,163,95,0.1), rgba(201,163,95,0.02) 55%, transparent 78%)",
+            boxShadow: "inset 0 1px 0 rgba(227,200,143,0.14)",
+          }}
+        >
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-[var(--gold-deep)] bg-[rgba(201,163,95,0.06)] text-[var(--gold)]">
+            <svg viewBox="0 0 64 64" className="h-5 w-5" aria-hidden="true">
+              <path
+                d="M32 5 L37.6 26.4 L59 32 L37.6 37.6 L32 59 L26.4 37.6 L5 32 L26.4 26.4 Z"
+                fill="currentColor"
+              />
+            </svg>
+          </span>
+          <span className="leading-tight">
+            <span className="block text-[10px] uppercase tracking-[0.18em] text-[var(--gold)]">
+              Бонус новым
+            </span>
+            <span className="mt-0.5 inline-flex items-center gap-1 font-display text-xl text-[var(--gold-soft)]">
+              {REGISTER_BONUS}
+              <AuraMark className="inline-block h-[0.7em] w-[0.7em] text-[var(--gold)]" />
+              aura
+            </span>
+            <span className="mt-0.5 block text-xs text-[var(--muted)]">
+              начислим на счёт сразу после создания аккаунта
+            </span>
+          </span>
+        </div>
+      )}
       <h1 className="font-display text-2xl sm:text-3xl text-[var(--gold-soft)]">
         {isRegister ? "Регистрация" : "Вход"}
       </h1>
@@ -109,7 +143,7 @@ export default function AuthForm({ mode }: { mode: "login" | "register" }) {
           className="btn-gold mt-2 inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading && <Spinner size={15} />}
-          {isRegister ? "Создать аккаунт" : "Войти"}
+          {isRegister ? `Создать аккаунт · +${REGISTER_BONUS} aura` : "Войти"}
         </button>
       </form>
 

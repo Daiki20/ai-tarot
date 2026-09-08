@@ -2,8 +2,10 @@ import Image from "next/image";
 import { READINGS } from "@/data/readings";
 import { cardsWordNominative } from "@/lib/pluralize";
 import { getCurrentUser } from "@/lib/auth";
+import { REGISTER_BONUS } from "@/lib/pricing";
 import ReadingIcon from "@/components/ReadingIcon";
 import GatedLink from "@/components/GatedLink";
+import AuraMark from "@/components/AuraMark";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import Price from "@/components/Price";
@@ -388,6 +390,10 @@ export default async function Home() {
               Карта дня, матрица судьбы и значения карт — открыты сразу, без
               регистрации. Расклады по вашему вопросу и AI-таролог — платные;
               аккаунт нужен, чтобы хранить историю раскладов и продолжать диалог.
+            </p>
+            <p className="mt-4 inline-flex items-center gap-1.5 text-sm text-[var(--gold-soft)]">
+              <AuraMark className="inline-block h-[1em] w-[1em] text-[var(--gold)]" />
+              И {REGISTER_BONUS}&nbsp;aura в подарок новым — скидка на первый расклад
             </p>
             <div className="mt-7 flex flex-wrap justify-center gap-4">
               <a

@@ -2,6 +2,8 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
+import AuraMark from "@/components/AuraMark";
+import { REGISTER_BONUS } from "@/lib/pricing";
 
 // Попап-заслонка: гостю нельзя открыть расклад/матрицу. Не форма входа —
 // только уведомление с переходом на /login или /register (туда прокидываем
@@ -55,6 +57,11 @@ export default function AuthGate({
           Чтобы сделать расклад, войдите или зарегистрируйтесь. После входа мы
           вернём вас к тому, что вы выбрали.
         </p>
+
+        <span className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-[var(--gold-deep)] bg-[rgba(201,163,95,0.06)] px-3.5 py-1.5 text-xs text-[var(--gold-soft)]">
+          <AuraMark className="inline-block h-[1em] w-[1em] text-[var(--gold)]" />
+          +{REGISTER_BONUS} aura новым — в подарок за регистрацию
+        </span>
 
         <div className="mt-6 flex flex-col gap-3">
           <Link

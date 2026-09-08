@@ -3,8 +3,11 @@ import { getReadingById } from "@/data/readings";
 // Единственный источник цен на стороне сервера. Клиент присылает только «за что»,
 // сумму берём отсюда — сколько aura списать.
 export const CHAT_ADDON_PRICE = 49;
-export const MATRIX_FULL_PRICE = 390;
+export const MATRIX_FULL_PRICE = 179;
 export const DAY_DEEP_PRICE = 99;
+
+// Стартовый бонус: начисляется на баланс сразу после регистрации.
+export const REGISTER_BONUS = 34;
 
 export type PayPurpose =
   | { kind: "reading"; readingKey: string }
