@@ -3,6 +3,10 @@ import { Playfair_Display, Inter } from "next/font/google";
 import "./globals.css";
 import MobileNav from "@/components/MobileNav";
 import VisitBeacon from "@/components/VisitBeacon";
+import YandexMetrika from "@/components/YandexMetrika";
+
+// Метрику включаем только на проде — dev/localhost не должен попадать в счётчик.
+const METRIKA_ON = process.env.NODE_ENV === "production";
 
 // Дисплейный сериф с высоким контрастом — «editorial», а не сток-мистик.
 const playfair = Playfair_Display({
@@ -40,6 +44,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         {children}
         <MobileNav />
         <VisitBeacon />
+        {METRIKA_ON && <YandexMetrika />}
       </body>
     </html>
   );
