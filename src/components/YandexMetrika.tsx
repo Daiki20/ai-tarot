@@ -3,8 +3,7 @@
 import { Suspense, useEffect, useRef } from "react";
 import Script from "next/script";
 import { usePathname, useSearchParams } from "next/navigation";
-
-export const YM_ID = 112378603;
+import { YM_ID } from "@/lib/metrika";
 
 declare global {
   interface Window {

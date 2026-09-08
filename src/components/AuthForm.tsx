@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Spinner from "@/components/Spinner";
 import AuraMark from "@/components/AuraMark";
 import { REGISTER_BONUS } from "@/lib/pricing";
+import { reachGoal } from "@/lib/metrika";
 
 // Форма входа/регистрации. Намеренно простая — авторизацию будут переделывать.
 export default function AuthForm({ mode }: { mode: "login" | "register" }) {
@@ -41,6 +42,8 @@ export default function AuthForm({ mode }: { mode: "login" | "register" }) {
         return;
       }
       if (isRegister) {
+        // Цель «Регистрация» в Яндекс.Метрике.
+        reachGoal("registration");
         // После регистрации — обязательный онбординг натальной карты,
         // а уже он вернёт человека на исходное действие.
         router.push(`/onboarding/natal${nextQuery}`);
